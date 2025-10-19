@@ -5,15 +5,13 @@ import matplotlib.pyplot as plt
 class FolgenBibliothek:
     @staticmethod
     def symbolische_tabelle(expr, n_symbol, n_start=1, n_end=10):
-        print(f"
-Symbolische Darstellung für a_n = {sp.pretty(expr)}")
+        print(f"Symbolische Darstellung für a_n = {sp.pretty(expr)}")
         for n in range(n_start, n_end + 1):
             print(f"a_{n} =", expr.subs(n_symbol, n))
 
     @staticmethod
     def numerische_tabelle(expr, n_symbol, n_start=1, n_end=10):
-        print("
-Numerische Tabelle der Folge:")
+        print("Numerische Tabelle der Folge:")
         for n in range(n_start, n_end + 1):
             print(f"a_{n} = {expr.subs(n_symbol, n).evalf():.10f}")
 
