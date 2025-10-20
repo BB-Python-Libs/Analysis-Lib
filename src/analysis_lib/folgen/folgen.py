@@ -52,7 +52,7 @@ class FolgenBibliothek:
 
         plt.figure(figsize=(8, 4))
         plt.axhline(0, color='black', linewidth=1.0)
-        plt.plot(y_values, x0, "o", label=f"Werte von a_n für n={n_start}..{n_end}")
+        plt.plot(y_values, x0, "o", label=f"Werte von $a_n = {sp.latex(sequence_expr)}$ für n={n_start}..{n_end}")
         plt.xlabel("Wert a_n")
         plt.yticks([])
         plt.title("Folge als Punktwolke auf der x-Achse")
