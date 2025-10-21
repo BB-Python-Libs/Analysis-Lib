@@ -66,7 +66,7 @@ class FolgenBibliothek:
         n_values, y_values = FolgenBibliothek.get_numeric_sequence_values(sequence_expr, n_symbol, n_start, n_end)
 
         plt.figure(figsize=(8, 4))
-        plt.plot(n_values, y_values, "o-", label=f"$a_n = {sp.latex(sequence_expr)}$")
+        plt.plot(n_values, y_values, "o:", label=f"$a_n = {sp.latex(sequence_expr)}$")
         plt.xlabel("Index n")
         plt.ylabel("Wert a_n")
         plt.title(f"Folge a_n gegen Index n (für n={n_start}..{n_end})")
@@ -97,7 +97,7 @@ class FolgenBibliothek:
                 exit(1)
 
         plt.figure(figsize=(10, 5))
-        plt.plot(n_values, a_vals, 'bo-', label=fr'Folge $a_n = {sp.latex(sequence_expr)}$')
+        plt.plot(n_values, a_vals, 'bo:', label=fr'Folge $a_n = {sp.latex(sequence_expr)}$')
         plt.axhline(L, color='black', linewidth=1.5, label=limit_label)
         plt.axhline(L + epsilon, color='red', linestyle='--', label=fr'$\varepsilon$-Band ($\varepsilon={epsilon}$)')
         plt.axhline(L - epsilon, color='red', linestyle='--')
@@ -124,11 +124,56 @@ class FolgenBibliothek:
         plt.figure(figsize=(12, 7))
         for seq_expr, label in sequences_to_plot:
             n_values, y_values = FolgenBibliothek.get_numeric_sequence_values(seq_expr, n_symbol, n_start, n_end)
-            plt.plot(n_values, y_values, 'o-', markersize=4, label=label)
+            plt.plot(n_values, y_values, 'o:', markersize=4, label=label)
         plt.xlabel('Index $n$')
         plt.ylabel('Wert $a_n$')
         plt.title(title)
         plt.legend()
         plt.grid(True, linestyle='--', alpha=0.6)
+        plt.tight_layout()
+        plt.show()
+
+    @staticmethod
+    def plot_supremum_illustration(sequence_expr, n_symbol, sup_value, n_start=1, n_end=50, epsilon=0.1, title="Visualisierung des Supremums"):
+        """
+        Visualisiert die Konvergenz einer beschränkten, monoton wachsenden Folge
+        gegen ihr Supremum.
+        """
+        n_values, y_values = FolgenBibliothek.get_numeric_sequence_values(sequence_expr, n_symbol, n_start, n_end)
+
+        plt.figure(figsize=(10, 6))
+
+        # 1. Folgenglieder als Punkte und Linie
+        plt.plot(n_values, y_values, 'bo:', label=f'$a_n = {sp.latex(sequence_expr)}$', markersize=5)
+
+        # 2. Supremum als "Decke" einzeichnen
+        plt.axhline(sup_value, color='black', linewidth=2, label=f'Supremum $\\sup(a_n) = {sup_value}$')
+
+        # 3. Nur die untere Epsilon-Grenze einzeichnen.
+        # Dies visualisiert die Bedingung: sup - ε ist KEINE obere Schranke mehr.
+        plt.axhline(sup_value - epsilon, color='red', linestyle='--', alpha=0.7, 
+                    label=f'Untere Grenze des $\\varepsilon$-Streifens ($L - \\varepsilon$)')
+
+        # 4. Alle Folgenglieder finden, die zwischen sup - ε und sup liegen
+        indices_in_strip = [i for i, y in enumerate(y_values) if (sup_value - epsilon) < y <= sup_value]
+        
+        if indices_in_strip:
+            # Finde das erste Folgenglied, das in den Streifen "eindringt"
+            first_idx_in_strip = indices_in_strip[0]
+            n_for_strip = n_values[first_idx_in_strip]
+            
+            # Hebe alle Punkte im Streifen hervor
+            strip_n_values = [n_values[i] for i in indices_in_strip]
+            strip_y_values = [y_values[i] for i in indices_in_strip]
+            
+            plt.scatter(strip_n_values, strip_y_values, color='green', s=60, zorder=5, 
+                        label=f'Mindestens ein $a_n$ für $n \\geq {n_for_strip}$ liegt im Streifen')
+
+        # Plot-Anpassungen
+        plt.title(title)
+        plt.xlabel("Index $n$")
+        plt.ylabel("Wert $a_n$")
+        plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+        plt.legend()
         plt.tight_layout()
         plt.show()
