@@ -177,3 +177,71 @@ class FolgenBibliothek:
         plt.legend()
         plt.tight_layout()
         plt.show()
+
+    @staticmethod
+    def plot_squeeze_theorem(
+        lower_seq, middle_seq, upper_seq, n_symbol, 
+        n_range=(1, 50),
+        title="Visualisierung des Einschließungskriteriums",
+        lower_label='Untere Folge',
+        middle_label='Eingeschlossene Folge',
+        upper_label='Obere Folge'
+    ):
+        """
+        Visualisiert das Einschließungskriterium mit robuster Behandlung von konstanten Folgen.
+        """
+        n_start, n_end = n_range
+        n_values = np.arange(n_start, n_end + 1, dtype=float)
+
+        def evaluate_seq(seq_expr):
+            """
+            Wertet einen SymPy-Ausdruck aus. Wenn er konstant ist, wird ein Array
+            der passenden Länge zurückgegeben.
+            """
+            # Prüfen, ob der Ausdruck konstant ist
+            if sp.simplify(seq_expr).is_constant():
+                # Konstanten Wert ermitteln
+                const_val = float(seq_expr.evalf() if hasattr(seq_expr, 'evalf') else seq_expr)
+                # Ein Array mit diesem Wert in der Länge von n_values zurückgeben
+                return np.full_like(n_values, fill_value=const_val)
+            else:
+                # Ansonsten die Funktion normal auswerten
+                f = sp.lambdify(n_symbol, seq_expr, 'numpy')
+                return f(n_values)
+
+        # Werte für alle drei Folgen robust berechnen
+        y_lower = evaluate_seq(lower_seq)
+        y_middle = evaluate_seq(middle_seq)
+        y_upper = evaluate_seq(upper_seq)
+
+        plt.figure(figsize=(12, 7))
+
+        # Plotten der Folgen
+        plt.plot(n_values, y_upper, 'r--', label=upper_label)
+        plt.plot(n_values, y_lower, 'b--', label=lower_label)
+        plt.plot(n_values, y_middle, 'go', markersize=4, label=middle_label)
+        plt.fill_between(n_values, y_lower, y_upper, color='gray', alpha=0.2, label='Einschließungsbereich')
+        
+        # Grenzwertberechnung (bereits robust)
+        try:
+            if sp.simplify(lower_seq).is_constant():
+                limit = float(lower_seq)
+            else:
+                limit = sp.limit(lower_seq, n_symbol, sp.oo)
+            
+            if limit is not None and limit.is_finite:
+                plt.axhline(float(limit), color='black', linestyle=':', linewidth=2, 
+                           label=f'Gemeinsamer Grenzwert L = {limit}')
+        except Exception as e:
+            print(f"Warnung: Der Grenzwert konnte nicht berechnet werden: {e}")
+
+        # Plot-Anpassungen
+        plt.title(title)
+        plt.xlabel('Index n')
+        plt.ylabel('Wert')
+        plt.legend()
+        plt.grid(True, linestyle='-', alpha=0.3)
+        plt.tight_layout()
+        plt.show()
+
+
