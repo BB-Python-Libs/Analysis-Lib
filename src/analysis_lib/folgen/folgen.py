@@ -134,50 +134,62 @@ class FolgenBibliothek:
         plt.show()
 
     @staticmethod
-    def plot_supremum_illustration(sequence_expr, n_symbol, sup_value, n_start=1, n_end=50, epsilon=0.1, title="Visualisierung des Supremums"):
+    def plot_supremum_infimum_visualization(sequence_expr, n_symbol, n_start=1, n_end=100,
+                                            epsilon=0.2, title="Visualisierung: Beschränkte konvergente Folge"):
         """
-        Visualisiert die Konvergenz einer beschränkten, monoton wachsenden Folge
-        gegen ihr Supremum.
+        Visualisiert für eine Folge:
+        - Supremum und Infimum
+        - ε-Streifen um die x-Achse
+        - Blaue Punkte vor N₀, grüne Punkte ab N₀
+        - Vertikale Linie bei N₀
         """
         n_values, y_values = FolgenBibliothek.get_numeric_sequence_values(sequence_expr, n_symbol, n_start, n_end)
 
-        plt.figure(figsize=(10, 6))
+        sup_val = np.max(y_values)
+        inf_val = np.min(y_values)
 
-        # 1. Folgenglieder als Punkte und Linie
-        plt.plot(n_values, y_values, 'bo:', label=f'$a_n = {sp.latex(sequence_expr)}$', markersize=5)
+        inside_mask = np.abs(y_values) <= epsilon
 
-        # 2. Supremum als "Decke" einzeichnen
-        plt.axhline(sup_value, color='black', linewidth=2, label=f'Supremum $\\sup(a_n) = {sup_value}$')
+        # Finde den INDEX N0_idx, ab dem alle Folgenglieder im ε-Streifen liegen
+        N0_idx = None
+        for i in range(len(y_values)):
+            if np.all(inside_mask[i:]):
+                N0_idx = i
+                break
 
-        # 3. Nur die untere Epsilon-Grenze einzeichnen.
-        # Dies visualisiert die Bedingung: sup - ε ist KEINE obere Schranke mehr.
-        plt.axhline(sup_value - epsilon, color='red', linestyle='--', alpha=0.7, 
-                    label=f'Untere Grenze des $\\varepsilon$-Streifens ($L - \\varepsilon$)')
+        plt.figure(figsize=(12, 6))
 
-        # 4. Alle Folgenglieder finden, die zwischen sup - ε und sup liegen
-        indices_in_strip = [i for i, y in enumerate(y_values) if (sup_value - epsilon) < y <= sup_value]
-        
-        if indices_in_strip:
-            # Finde das erste Folgenglied, das in den Streifen "eindringt"
-            first_idx_in_strip = indices_in_strip[0]
-            n_for_strip = n_values[first_idx_in_strip]
-            
-            # Hebe alle Punkte im Streifen hervor
-            strip_n_values = [n_values[i] for i in indices_in_strip]
-            strip_y_values = [y_values[i] for i in indices_in_strip]
-            
-            plt.scatter(strip_n_values, strip_y_values, color='green', s=60, zorder=5, 
-                        label=f'Mindestens ein $a_n$ für $n \\geq {n_for_strip}$ liegt im Streifen')
+        # Punkte basierend auf dem INDEX N0_idx aufteilen und plotten
+        if N0_idx is not None:
+            # Punkte vor dem Index N0_idx (blau)
+            plt.plot(n_values[:N0_idx], y_values[:N0_idx], 'bo', 
+                     label=f'aₙ für n < {n_values[N0_idx]}')
+            # Punkte ab dem Index N0_idx (grün)
+            plt.plot(n_values[N0_idx:], y_values[N0_idx:], 'go', 
+                     label=f'aₙ für n ≥ {n_values[N0_idx]}')
+        else:
+            plt.plot(n_values, y_values, 'bo', label='Folge aₙ')
 
-        # Plot-Anpassungen
+        # Supremum, Infimum, ε-Streifen
+        plt.axhline(sup_val, color='red', linestyle='--', linewidth=1.5, label=fr'Supremum: {sup_val:.3f}')
+        plt.axhline(inf_val, color='green', linestyle='--', linewidth=1.5, label=fr'Infimum: {inf_val:.3f}')
+        plt.fill_between(n_values, -epsilon, epsilon, color='gray', alpha=0.3, label=fr'ε-Streifen: |aₙ| < {epsilon}')
+
+        # Vertikale Linie beim Wert n = N0
+        if N0_idx is not None:
+            N0_val = n_values[N0_idx]
+            plt.axvline(N0_val, color='orange', linestyle='-', linewidth=2, label=fr'Grenzindex N₀ = {N0_val}')
+
+        # Plot-Gestaltung
+        plt.axhline(0, color='black', linewidth=1)
         plt.title(title)
-        plt.xlabel("Index $n$")
-        plt.ylabel("Wert $a_n$")
-        plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+        plt.xlabel('Index n')
+        plt.ylabel('Wert aₙ')
         plt.legend()
+        plt.grid(True, linestyle='--', alpha=0.4)
         plt.tight_layout()
         plt.show()
-
+                
     @staticmethod
     def plot_squeeze_theorem(
         lower_seq, middle_seq, upper_seq, n_symbol, 
@@ -229,7 +241,7 @@ class FolgenBibliothek:
             else:
                 limit = sp.limit(lower_seq, n_symbol, sp.oo)
             
-            if limit is not None and limit.is_finite:
+            if limit is not None:
                 plt.axhline(float(limit), color='black', linestyle=':', linewidth=2, 
                            label=f'Gemeinsamer Grenzwert L = {limit}')
         except Exception as e:

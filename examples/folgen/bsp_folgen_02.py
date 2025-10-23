@@ -26,7 +26,7 @@ FolgenBibliothek.plot_squeeze_theorem(
 
 # Definition der drei Folgen
 untere_folge = 0
-obere_folge = 1/(1+n/3)
+obere_folge = 3/(3+n)
 mittlere_folge = (3/4)**n
 
 # Aufruf der Plot-Funktion mit detaillierten, flexiblen Labels
