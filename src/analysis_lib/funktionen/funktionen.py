@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 class FunktionenBibliothek:
     @staticmethod
-    def plot_function_and_inverse(f_expr, f_inv_expr, x_range=(-10, 10), y_range=(-10, 10), plot_range=(-10, 10)):
+    def plot_function_and_inverse(f_expr, f_inv_expr, x_range=(-10, 10), y_range=(-10, 10), plot_range=(-10, 10), save_fig=None):
         """
         Plottet eine gegebene Funktion f(x) und ihre Umkehrfunktion f⁻¹(x)
         im selben Diagramm, ergänzt durch die Winkelhalbierende y=x.
@@ -34,11 +34,13 @@ class FunktionenBibliothek:
         plt.ylim(plot_range)
         plt.grid(True)
         plt.legend()
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
         plt.show()
 
 
     @staticmethod
-    def plot_multiple_functions(functions, x_symbol, x_range=(-10, 10), y_range=None, title="Vergleich mehrerer Funktionen", xlabel="x", ylabel="f(x)"):
+    def plot_multiple_functions(functions, x_symbol, x_range=(-10, 10), y_range=None, title="Vergleich mehrerer Funktionen", xlabel="x", ylabel="f(x)", save_fig=None):
         """
         Zeichnet mehrere Funktionen in ein gemeinsames Diagramm.
 
@@ -72,6 +74,8 @@ class FunktionenBibliothek:
             
         plt.legend()
         plt.tight_layout()
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
         plt.show()
 
     @staticmethod
