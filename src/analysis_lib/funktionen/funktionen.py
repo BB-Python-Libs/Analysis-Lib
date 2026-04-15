@@ -684,3 +684,79 @@ class FunktionenBibliothek:
         if save_fig is not None:
             plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
         plt.show()
+
+class AnalysisIIVisualisierung:
+
+    @staticmethod
+    def plot_scalar_field_3d(f_expr, x_symbol, y_symbol, x_range=(-5, 5), y_range=(-5, 5), 
+                             resolution=100, title="3D-Skalarfeld", save_fig=None):
+        """
+        Visualisiert ein 3D-Skalarfeld f(x, y) als Oberfläche inkl. projizierter Höhenlinien.
+        """
+        f = sp.lambdify((x_symbol, y_symbol), f_expr, "numpy")
+        
+        x_vals = np.linspace(x_range[0], x_range[1], resolution)
+        y_vals = np.linspace(y_range[0], y_range[1], resolution)
+        X, Y = np.meshgrid(x_vals, y_vals)
+        
+        Z = f(X, Y)
+        
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.85)
+        
+        z_offset = np.min(Z) - (np.max(Z) - np.min(Z)) * 0.15
+        ax.contour(X, Y, Z, zdir='z', offset=z_offset, cmap='viridis', levels=15)
+        
+        fig.colorbar(surf, ax=ax, shrink=0.5, aspect=10, pad=0.1, label='$f(x, y)$')
+        ax.set_title(title)
+        ax.set_xlabel(f"${x_symbol.name}$")
+        ax.set_ylabel(f"${y_symbol.name}$")
+        ax.set_zlabel(r"$f(x, y)$")
+        
+        ax.set_zlim(z_offset, np.max(Z))
+        
+        plt.tight_layout()
+        
+        # Bild speichern, falls ein Name übergeben wurde
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
+            
+        plt.show()
+
+    @staticmethod
+    def plot_scalar_field_contour(f_expr, x_symbol, y_symbol, x_range=(-5, 5), y_range=(-5, 5), 
+                                  resolution=400, title="Höhenlinien (Niveaumengen)", save_fig=None):
+        """
+        Zeichnet ein 2D-Höhenliniendiagramm des Skalarfeldes zur Diskussion von Niveaumengen.
+        """
+        f = sp.lambdify((x_symbol, y_symbol), f_expr, "numpy")
+        
+        x_vals = np.linspace(x_range[0], x_range[1], resolution)
+        y_vals = np.linspace(y_range[0], y_range[1], resolution)
+        X, Y = np.meshgrid(x_vals, y_vals)
+        Z = f(X, Y)
+        
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        cf = ax.contourf(X, Y, Z, levels=20, cmap='viridis', alpha=0.8)
+        
+        c = ax.contour(X, Y, Z, levels=20, colors='black', linewidths=0.6)
+        ax.clabel(c, inline=True, fontsize=9, fmt='%.1f')
+        
+        fig.colorbar(cf, ax=ax, label='$f(x, y)$')
+        
+        ax.set_title(title)
+        ax.set_xlabel(f"${x_symbol.name}$")
+        ax.set_ylabel(f"${y_symbol.name}$")
+        ax.grid(True, alpha=0.3)
+        ax.set_aspect('equal')
+        
+        plt.tight_layout()
+        
+        # Bild speichern, falls ein Name übergeben wurde
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
+            
+        plt.show()

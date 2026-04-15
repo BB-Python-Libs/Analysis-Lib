@@ -1,2 +1,3 @@
-from .funktionen import FunktionenBibliothek
-__all__ = ["FunktionenBibliothek"]
+from .funktionen import FunktionenBibliothek, AnalysisIIVisualisierung
+
+__all__ = ["FunktionenBibliothek", "AnalysisIIVisualisierung"]
