@@ -760,3 +760,220 @@ class AnalysisIIVisualisierung:
             plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
             
         plt.show()
+
+
+    @staticmethod
+    def plot_partial_derivative_3d(f_expr, x_symbol, y_symbol, point, wrt='x', 
+                                   x_range=(-5, 5), y_range=(-5, 5), resolution=100, 
+                                   title=None, save_fig=None):
+        """
+        Visualisiert die partielle Funktion (Schnittkurve) und deren Tangente im 3D-Raum.
+        
+        Args:
+            point: Tupel (x0, y0) für den Punkt der Ableitung.
+            wrt: 'x' oder 'y' (with respect to / nach welcher Variable abgeleitet wird).
+        """
+        x0, y0 = point
+        f = sp.lambdify((x_symbol, y_symbol), f_expr, "numpy")
+        
+        # Partielle Ableitung symbolisch und numerisch
+        df_expr = sp.diff(f_expr, x_symbol if wrt == 'x' else y_symbol)
+        df = sp.lambdify((x_symbol, y_symbol), df_expr, "numpy")
+        
+        z0 = float(f(x0, y0))
+        slope = float(df(x0, y0))
+        
+        # 3D-Gitter erzeugen
+        x_vals = np.linspace(x_range[0], x_range[1], resolution)
+        y_vals = np.linspace(y_range[0], y_range[1], resolution)
+        X, Y = np.meshgrid(x_vals, y_vals)
+        Z = f(X, Y)
+        
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        # 1. Die 3D-Oberfläche (halbtransparent)
+        ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.4, edgecolor='none')
+        
+        # 2. Die partielle Funktion (Schnittkurve) & Tangente
+        t_vals = np.linspace(-2, 2, 50) # Parameter für die Tangente
+        
+        if wrt == 'x':
+            # y wird konstant gehalten (y = y0)
+            curve_x = x_vals
+            curve_y = np.full_like(x_vals, y0)
+            curve_z = f(curve_x, curve_y)
+            
+            tan_x = x0 + t_vals
+            tan_y = np.full_like(t_vals, y0)
+            tan_z = z0 + slope * t_vals
+            
+            curve_label = f"Partielle Funktion $f(x, {y0})$"
+        else:
+            # x wird konstant gehalten (x = x0)
+            curve_x = np.full_like(y_vals, x0)
+            curve_y = y_vals
+            curve_z = f(curve_x, curve_y)
+            
+            tan_x = np.full_like(t_vals, x0)
+            tan_y = y0 + t_vals
+            tan_z = z0 + slope * t_vals
+            
+            curve_label = f"Partielle Funktion $f({x0}, y)$"
+
+        # Kurve zeichnen
+        ax.plot(curve_x, curve_y, curve_z, color='red', linewidth=3, label=curve_label)
+        
+        # Tangente zeichnen (auf sichtbaren Bereich beschränken)
+        z_min, z_max = np.min(Z), np.max(Z)
+        valid = (tan_z >= z_min - 1) & (tan_z <= z_max + 1)
+        ax.plot(tan_x[valid], tan_y[valid], tan_z[valid], color='black', 
+                linewidth=2.5, linestyle='--', label=f"Tangente (Steigung $\\approx {slope:.2f}$)")
+        
+        # Berührpunkt markieren
+        ax.scatter([x0], [y0], [z0], color='black', s=60, zorder=5, label="Berührpunkt")
+        
+        # Formatierung
+        if title is None:
+            title = f"Partielle Ableitung nach {wrt} an der Stelle ({x0}, {y0})"
+        ax.set_title(title)
+        ax.set_xlabel(f"${x_symbol.name}$")
+        ax.set_ylabel(f"${y_symbol.name}$")
+        ax.set_zlabel(r"$f(x,y)$")
+        ax.legend()
+        
+        plt.tight_layout()
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
+        plt.show()
+
+    @staticmethod
+    def plot_partial_function_2d(f_expr, x_symbol, y_symbol, point, wrt='x', 
+                                 plot_range=(-5, 5), title=None, save_fig=None):
+        """
+        Plottet die partielle Funktion als klassischen 2D-Schnitt wie in Analysis I.
+        """
+        x0, y0 = point
+        f = sp.lambdify((x_symbol, y_symbol), f_expr, "numpy")
+        
+        df_expr = sp.diff(f_expr, x_symbol if wrt == 'x' else y_symbol)
+        df = sp.lambdify((x_symbol, y_symbol), df_expr, "numpy")
+        
+        z0 = float(f(x0, y0))
+        slope = float(df(x0, y0))
+        
+        t_vals = np.linspace(plot_range[0], plot_range[1], 400)
+        
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        if wrt == 'x':
+            z_vals = f(t_vals, np.full_like(t_vals, y0))
+            ax.set_xlabel(f"${x_symbol.name}$")
+            ax.set_title(title or f"2D-Schnitt: Partielle Funktion $g(x) = f(x, {y0})$")
+            p0 = x0
+        else:
+            z_vals = f(np.full_like(t_vals, x0), t_vals)
+            ax.set_xlabel(f"${y_symbol.name}$")
+            ax.set_title(title or f"2D-Schnitt: Partielle Funktion $h(y) = f({x0}, y)$")
+            p0 = y0
+            
+        # Kurve
+        ax.plot(t_vals, z_vals, color='red', linewidth=2, label="Partielle Funktion")
+        
+        # Tangente: T(t) = z0 + slope * (t - p0)
+        tangent_vals = z0 + slope * (t_vals - p0)
+        ax.plot(t_vals, tangent_vals, color='black', linestyle='--', 
+                label=f"Tangente ($m = {slope:.2f}$)")
+        
+        # Punkt
+        ax.scatter([p0], [z0], color='black', s=50, zorder=5)
+        
+        ax.set_ylabel(r"$f$")
+        ax.axhline(0, color='black', linewidth=0.5)
+        ax.axvline(0, color='black', linewidth=0.5)
+        ax.grid(True, alpha=0.3)
+        
+        # Y-Limit sinnvoll einschränken, falls Tangente wegläuft
+        ax.set_ylim(np.min(z_vals) - 2, np.max(z_vals) + 2)
+        ax.legend()
+        
+        plt.tight_layout()
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
+        plt.show()
+
+    @staticmethod
+    def plot_partial_function_3d(f_expr, x_symbol, y_symbol, point, wrt='x', 
+                                 x_range=(-5, 5), y_range=(-5, 5), resolution=100, 
+                                 title=None, save_fig=None):
+        """
+        Visualisiert nur die partielle Funktion (Schnittkurve) im 3D-Raum, ohne Tangente.
+        Der Fokus liegt auf dem "Einfrieren" einer Variablen.
+        
+        Args:
+            point: Tupel (x0, y0), durch den der Schnitt gehen soll.
+            wrt: 'x' oder 'y' (welche Variable *variabel* bleibt).
+        """
+        x0, y0 = point
+        f = sp.lambdify((x_symbol, y_symbol), f_expr, "numpy")
+        z0 = float(f(x0, y0))
+        
+        # 3D-Gitter für die Oberfläche
+        x_vals = np.linspace(x_range[0], x_range[1], resolution)
+        y_vals = np.linspace(y_range[0], y_range[1], resolution)
+        X, Y = np.meshgrid(x_vals, y_vals)
+        Z = f(X, Y)
+        
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        # Die 3D-Oberfläche (stärker transparent, um den Schnitt zu betonen)
+        ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.3, edgecolor='none')
+        
+        # --- Die partielle Funktion (Schnittkurve) ---
+        if wrt == 'x':
+            # y wird konstant gehalten (y = y0)
+            curve_x = x_vals
+            curve_y = np.full_like(x_vals, y0)
+            curve_z = f(curve_x, curve_y)
+            curve_label = f"Partielle Funktion $f(x, {y0:.1f})$"
+            
+            # Optional: Die Schnittebene andeuten
+            plane_x, plane_z = np.meshgrid(x_vals, np.linspace(np.min(Z), np.max(Z), 2))
+            plane_y = np.full_like(plane_x, y0)
+            ax.plot_surface(plane_x, plane_y, plane_z, color='red', alpha=0.1)
+
+        else:
+            # x wird konstant gehalten (x = x0)
+            curve_x = np.full_like(y_vals, x0)
+            curve_y = y_vals
+            curve_z = f(curve_x, curve_y)
+            curve_label = f"Partielle Funktion $f({x0:.1f}, y)$"
+            
+            # Optional: Die Schnittebene andeuten
+            plane_y, plane_z = np.meshgrid(y_vals, np.linspace(np.min(Z), np.max(Z), 2))
+            plane_x = np.full_like(plane_y, x0)
+            ax.plot_surface(plane_x, plane_y, plane_z, color='red', alpha=0.1)
+
+        # Rote Schnittkurve dick zeichnen
+        ax.plot(curve_x, curve_y, curve_z, color='red', linewidth=4, label=curve_label)
+        
+        # Den Bezugspunkt markieren
+        ax.scatter([x0], [y0], [z0], color='black', s=80, zorder=5, label=f"Punkt $P({x0:.1f}, {y0:.1f}, {z0:.1f})$")
+        
+        # Formatierung
+        if title is None:
+            var_fixed = "y" if wrt == 'x' else "x"
+            val_fixed = y0 if wrt == 'x' else x0
+            title = f"Schnittkurve bei festgehaltenem ${var_fixed} = {val_fixed:.1f}$"
+            
+        ax.set_title(title)
+        ax.set_xlabel(f"${x_symbol.name}$")
+        ax.set_ylabel(f"${y_symbol.name}$")
+        ax.set_zlabel(r"$f(x,y)$")
+        ax.legend()
+        
+        plt.tight_layout()
+        if save_fig is not None:
+            plt.savefig(save_fig + ".png", dpi=300, bbox_inches='tight')
+        plt.show()

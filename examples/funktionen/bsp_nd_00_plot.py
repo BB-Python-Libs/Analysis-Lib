@@ -6,6 +6,7 @@ x, y = sp.symbols('x y')
 
 # Sattelpunkt visualisieren und als "sattelpunkt_3d.png" speichern
 f_sattel = x**2 - y**2
+
 AnalysisIIVisualisierung.plot_scalar_field_3d(
     f_sattel, x, y, 
     title="Sattelpunkt: $f(x,y) = x^2 - y^2$",
